@@ -1,0 +1,6 @@
+# Project info
+*.Rproj*
+data
+.Rproj.user
+.RDataTmp
+.Rhistory
