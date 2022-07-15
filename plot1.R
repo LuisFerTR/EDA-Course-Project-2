@@ -1,3 +1,5 @@
+library(dplyr)
+
 # Get data
 data.dir <- "./data"
 if(!file.exists(data.dir)) {
@@ -18,11 +20,15 @@ NEI <- readRDS(paste(data.dir, "summarySCC_PM25.rds", sep="/"))
 SCC <- readRDS(paste(data.dir, "Source_Classification_Code.rds", sep="/"))
 
 # Group data by year
-by.years <- group_by(NEI, year)
-total.emissions.year <- summarise(by_years, total = sum(Emissions))
+total.emissions.year <- NEI %>% 
+  group_by(year) %>% 
+  summarise(total = sum(Emissions))
 
-png("plot1.R")
-plot(total.emissions.year, main="Total PM2.5 Emissions (1999-2008)")
+png("plot1.png")
+plot(total.emissions.year, 
+     main="Total PM2.5 Emissions (1999-2008)", 
+     col = "dodgerblue4",
+     pch = 16)
 
 x <- total.emissions.year$year
 y <- total.emissions.year$total
@@ -33,4 +39,6 @@ x0 <- seq(min(x), max(x), length = 10)
 y0 <- predict.lm(fit, newdata = list(x = x0))  
 
 lines(x0, y0, col = 2)
+
+# Close graphic device connection
 dev.off()

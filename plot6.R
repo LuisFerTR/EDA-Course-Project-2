@@ -20,17 +20,24 @@ unzip(zip.file, exdir = data.dir)
 NEI <- readRDS(paste(data.dir, "summarySCC_PM25.rds", sep="/"))
 SCC <- readRDS(paste(data.dir, "Source_Classification_Code.rds", sep="/"))
 
+# Get motor vehicle sources code
+NEI.mvehicle <- filter(NEI, SCC %in% mvehicle.scc$SCC & (fips == "06037" | fips == "24510"))
+
+cities <- list("06037" = "Los Angeles", "24510" = "Baltimore")
+
+NEI.mvehicle <- mutate(NEI.mvehicle, city = as.character(cities[fips]))
+
 # Group data by year and plot it
-total.emissions.year <- NEI %>% 
-  group_by(year,type) %>% 
+total.emissions.year <- NEI.mvehicle %>% 
+  group_by(year,city) %>% 
   summarise(total = sum(Emissions))
 
-png("plot3.png")
+png("plot6.png")
 g <- ggplot(total.emissions.year, aes(year, total))
-g2 <- g + geom_point(alpha=1/3, aes(color = type)) + 
-  geom_smooth(method="lm", se = FALSE, aes(color = type)) + 
-  theme_light() + 
-  labs(title = "Total PM2.5 Emissions by type (1999-2008)")
+g2 <- g + geom_point(aes(color = city)) + 
+  geom_smooth(method="lm", se = FALSE, aes(color = city)) + 
+  theme_light() +  
+  labs(title = "Total PM2.5 Emissions from motor vehicle sources (1999-2008)")
 
 print(g2)
 # Close graphic device connection

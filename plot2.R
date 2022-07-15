@@ -1,3 +1,5 @@
+library(dplyr)
+
 # Get data
 data.dir <- "./data"
 if(!file.exists(data.dir)) {
@@ -16,3 +18,28 @@ unzip(zip.file, exdir = data.dir)
 
 NEI <- readRDS(paste(data.dir, "summarySCC_PM25.rds", sep="/"))
 SCC <- readRDS(paste(data.dir, "Source_Classification_Code.rds", sep="/"))
+
+# Group data by year and plot it
+total.emissions.year <- NEI %>% 
+  filter(fips == "24510") %>% 
+  group_by(year) %>% 
+  summarise(total = sum(Emissions))
+
+png("plot2.png")
+plot(total.emissions.year, 
+     main="Total PM2.5 Emissions in the Baltimore City, Maryland (1999-2008)", 
+     col = "darkorchid",
+     pch = 16)
+
+x <- total.emissions.year$year
+y <- total.emissions.year$total
+
+fit <- lm(y ~ x)
+
+x0 <- seq(min(x), max(x), length = 10)  
+y0 <- predict.lm(fit, newdata = list(x = x0))  
+
+lines(x0, y0, col = 2)
+
+# Close graphic device connection
+dev.off()

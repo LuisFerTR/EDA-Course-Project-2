@@ -20,17 +20,23 @@ unzip(zip.file, exdir = data.dir)
 NEI <- readRDS(paste(data.dir, "summarySCC_PM25.rds", sep="/"))
 SCC <- readRDS(paste(data.dir, "Source_Classification_Code.rds", sep="/"))
 
+# Get coal combustion-related sources code
+coal.names <- grep('coal',SCC$Short.Name,value=TRUE,ignore.case=TRUE)
+coal.scc <- SCC %>% filter(Short.Name %in% coal.names) %>% select(SCC)
+
+NEI.coal <- filter(NEI, SCC %in% coal.scc$SCC)
+
 # Group data by year and plot it
-total.emissions.year <- NEI %>% 
-  group_by(year,type) %>% 
+total.emissions.year <- NEI.coal %>% 
+  group_by(year) %>% 
   summarise(total = sum(Emissions))
 
-png("plot3.png")
+png("plot4.png")
 g <- ggplot(total.emissions.year, aes(year, total))
-g2 <- g + geom_point(alpha=1/3, aes(color = type)) + 
-  geom_smooth(method="lm", se = FALSE, aes(color = type)) + 
-  theme_light() + 
-  labs(title = "Total PM2.5 Emissions by type (1999-2008)")
+g2 <- g + geom_point(colour = "dodgerblue4") + 
+  geom_smooth(method="lm", se = FALSE, colour = "firebrick2") + 
+  theme(legend.position = "none") +  
+  labs(title = "Total PM2.5 Emissions from coal combustion-related sources (1999-2008)")
 
 print(g2)
 # Close graphic device connection
