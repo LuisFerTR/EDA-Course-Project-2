@@ -3,8 +3,8 @@ title: "Exploratory Data Analysis of PM2.5 Emissions in USA"
 author: "Luis Talavera"
 date: "July 14th 2022"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -33,17 +33,13 @@ data.dir <- "./data"
 if(!file.exists(data.dir)) {
   dir.create(data.dir)
 }
-
 zip.url <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip"
 zip.file <- paste(data.dir, "dataset.zip", sep="/")
-
 if(!file.exists(zip.file))
 {
   download.file(zip.url, destfile = zip.file)  
 }
-
 unzip(zip.file, exdir = data.dir)
-
 NEI <- readRDS(paste(data.dir, "summarySCC_PM25.rds", sep="/"))
 SCC <- readRDS(paste(data.dir, "Source_Classification_Code.rds", sep="/"))
 ```
@@ -100,20 +96,15 @@ head(SCC[,1:5])
 total.emissions.year <- NEI %>% 
   group_by(year) %>% 
   summarise(total = sum(Emissions))
-
 plot(total.emissions.year, 
      main="Total PM2.5 Emissions (1999-2008)", 
      col = "dodgerblue4",
      pch = 16)
-
 x <- total.emissions.year$year
 y <- total.emissions.year$total
-
 fit <- lm(y ~ x)
-
 x0 <- seq(min(x), max(x), length = 10)  
 y0 <- predict.lm(fit, newdata = list(x = x0))  
-
 lines(x0, y0, col = 2)
 ```
 
@@ -126,20 +117,15 @@ total.emissions.year <- NEI %>%
   filter(fips == "24510") %>% 
   group_by(year) %>% 
   summarise(total = sum(Emissions))
-
 plot(total.emissions.year, 
      main="Total PM2.5 Emissions in the Baltimore City, Maryland (1999-2008)", 
      col = "darkorchid",
      pch = 16)
-
 x <- total.emissions.year$year
 y <- total.emissions.year$total
-
 fit <- lm(y ~ x)
-
 x0 <- seq(min(x), max(x), length = 10)  
 y0 <- predict.lm(fit, newdata = list(x = x0))  
-
 lines(x0, y0, col = 2)
 ```
 
@@ -151,13 +137,11 @@ As we can see by the red line the total emissions from PM2.5 in Baltimore city h
 total.emissions.year <- NEI %>% 
   group_by(year,type) %>% 
   summarise(total = sum(Emissions))
-
 g <- ggplot(total.emissions.year, aes(year, total))
 g + geom_point(alpha=1/3, aes(color = type)) + 
   geom_smooth(method="lm", se = FALSE, aes(color = type)) + 
   theme_light() + 
   labs(title = "Total PM2.5 Emissions by type (1999-2008)")
-
 ```
 
 From the graph we can see that NON-POINT emissions have decreased significantly, POINT emissions
@@ -170,13 +154,10 @@ have hardly decreased at all.
 ```{r q4}
 coal.names <- grep('coal',SCC$Short.Name,value=TRUE,ignore.case=TRUE)
 coal.scc <- SCC %>% filter(Short.Name %in% coal.names) %>% select(SCC)
-
 NEI.coal <- filter(NEI, SCC %in% coal.scc$SCC)
-
 total.emissions.year <- NEI.coal %>% 
   group_by(year) %>% 
   summarise(total = sum(Emissions))
-
 g <- ggplot(total.emissions.year, aes(year, total))
 g + geom_point(colour = "dodgerblue4") + 
   geom_smooth(method="lm", se = FALSE, colour = "firebrick2") + 
@@ -192,13 +173,10 @@ From the graphic, the emissions from coal combustion-related sources are decreas
 ```{r q5}
 mvehicle.names <- grep('vehicle',SCC$EI.Sector,value=TRUE,ignore.case=TRUE)
 mvehicle.scc <- SCC %>% filter(EI.Sector %in% mvehicle.names) %>% select(SCC)
-
 NEI.mvehicle <- filter(NEI, SCC %in% mvehicle.scc$SCC & fips == "24510")
-
 total.emissions.year <- NEI.mvehicle %>% 
   group_by(year) %>% 
   summarise(total = sum(Emissions))
-
 g <- ggplot(total.emissions.year, aes(year, total))
 g + geom_point(colour = "darkorchid") + 
   geom_smooth(method="lm", se = FALSE, colour = "darkorange2") + 
@@ -212,15 +190,11 @@ From the graphic, the emissions from motor vehicle sources in Baltimore City are
 
 ```{r q6}
 NEI.mvehicle <- filter(NEI, SCC %in% mvehicle.scc$SCC & (fips == "06037" | fips == "24510"))
-
 cities <- list("06037" = "Los Angeles", "24510" = "Baltimore")
-
 NEI.mvehicle <- mutate(NEI.mvehicle, city = as.character(cities[fips]))
-
 total.emissions.year <- NEI.mvehicle %>% 
   group_by(year,city) %>% 
   summarise(total = sum(Emissions))
-
 g <- ggplot(total.emissions.year, aes(year, total))
 g + geom_point(aes(color = city)) + 
   geom_smooth(method="lm", se = FALSE, aes(color = city)) + 
